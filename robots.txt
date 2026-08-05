@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://joenasriani.github.io/joenasr-portfolio/sitemap.xml
