@@ -1,0 +1,37 @@
+name: Finalize A2 identity
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/finalize-a2-identity.yml
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Align Person schema with canonical identity
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          s = s.replace('content="Joe Ribal Nasr is a Dubai-based creative technologist', 'content="Joe Nasr is a Dubai-based creative technologist')
+          s = s.replace('<meta name="author" content="Joe Ribal Nasr">', '<meta name="author" content="Joe Nasr">')
+          s = s.replace('"name": "Joe Ribal Nasr",\n    "alternateName": ["Joe Nasr", "Joe Ribal Nasr", "Joseph Ribal Nasr"]', '"name": "Joe Nasr",\n    "alternateName": ["Joe Ribal Nasr", "Joseph Ribal Nasr"]')
+          s = s.replace('"https://www.youtube.com/@JoeNasr"', '"https://www.youtube.com/@joenasr"')
+          s = s.replace(',\n      "https://joe-nasr-signals.vercel.app/v2/"\n    ]', ',\n      "https://joenasr.itch.io/",\n      "https://open.spotify.com/artist/0bp9ZPSn1eqTzAU39Ekw15"\n    ]')
+          p.write_text(s)
+
+          p = Path('README.md')
+          s = p.read_text().replace('Public evidence archive: https://joe-nasr-signals.vercel.app/', 'Canonical identity: https://joe-nasr-signals.vercel.app/v2/')
+          p.write_text(s)
+      - name: Commit and remove one-time workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/finalize-a2-identity.yml
+          git add index.html README.md
+          git commit -m "Align portfolio with canonical Joe Nasr Person identity"
+          git push
