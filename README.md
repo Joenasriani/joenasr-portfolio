@@ -40,5 +40,5 @@ The repository is static and deploys directly to GitHub Pages or Vercel.
 - LinkedIn: https://www.linkedin.com/in/joenasrprofile
 - Work highlights: https://linktr.ee/joenasr
 - GitHub: https://github.com/Joenasriani
-- Public evidence archive: https://joe-nasr-signals.vercel.app/
+- Canonical identity: https://joe-nasr-signals.vercel.app/v2/
 - RoboMarket: https://robomarket.ae/
