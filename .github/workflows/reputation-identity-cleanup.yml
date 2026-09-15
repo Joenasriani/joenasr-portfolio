@@ -14,26 +14,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Complete canonical identity alignment
+      - name: Repair portfolio JSON-LD
         run: |
           python - <<'PY'
           from pathlib import Path
           p=Path('index.html')
           s=p.read_text()
-          s=s.replace('"alternateName": ["Joe Nasr", "Joseph Nasr"]','"alternateName": ["Joe Nasr", "Joe Ribal Nasr", "Joseph Ribal Nasr"]')
-          s=s.replace('      "https://robomarket.ae/"\n','')
-          s=s.replace('      "https://robomarket.ae/",\n','')
-          s=s.replace('https://joe-nasr-signals.vercel.app/','https://joe-nasr-signals.vercel.app/v2/')
-          # Preserve the portfolio canonical itself after the broad identity-link update.
-          s=s.replace('<link rel="canonical" href="https://joe-nasr-signals.vercel.app/v2/joenasr-portfolio/">','<link rel="canonical" href="https://joenasriani.github.io/joenasr-portfolio/">')
-          s=s.replace('<meta property="og:url" content="https://joe-nasr-signals.vercel.app/v2/joenasr-portfolio/">','<meta property="og:url" content="https://joenasriani.github.io/joenasr-portfolio/">')
-          s=s.replace('Dubai-based multidisciplinary creative working across the GCC.','Dubai-based creative technologist working across the GCC.')
+          s=s.replace('https://joe-nasr-signals.vercel.app/v2/v2/#joe-nasr','https://joe-nasr-signals.vercel.app/v2/#joe-nasr')
+          s=s.replace('https://joe-nasr-signals.vercel.app/v2/v2/','https://joe-nasr-signals.vercel.app/v2/')
+          s=s.replace('      "https://joe-nasr-signals.vercel.app/v2/",\n    ]','      "https://joe-nasr-signals.vercel.app/v2/"\n    ]')
           p.write_text(s)
           PY
-      - name: Commit changes
+      - name: Validate JSON-LD
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,re
+          s=Path('index.html').read_text()
+          blocks=re.findall(r'<script type="application/ld\+json">\s*(.*?)\s*</script>',s,re.S)
+          for b in blocks: json.loads(b)
+          print(f'Validated {len(blocks)} JSON-LD block(s)')
+          PY
+      - name: Commit repair
         run: |
           git config user.name "Joe Nasr Reputation Maintenance"
           git config user.email "actions@users.noreply.github.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "Complete portfolio canonical identity cleanup"
+          git diff --cached --quiet || git commit -m "Repair portfolio canonical Person JSON-LD"
           git push
