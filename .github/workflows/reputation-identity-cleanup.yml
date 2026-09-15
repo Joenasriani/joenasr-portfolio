@@ -1,0 +1,43 @@
+name: Reputation identity cleanup
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/reputation-identity-cleanup.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Align portfolio with canonical technical identity
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          replacements = {
+            'Joe Ribal Nasr is a Dubai-based creative director, composer, educator, AI product strategist and interactive media creator working across brands, sound, XR, games and robotics ventures.': 'Joe Ribal Nasr is a Dubai-based creative technologist working across XR, AI and interactive systems, with professional experience in creative direction, visual communication, education, music and interactive media.',
+            'Joe Nasr — Creative Director, Composer & Creative Technologist': 'Joe Nasr — Creative Technologist | XR, AI & Interactive Systems',
+            'Five connected practices: creative direction, interactive production, music, education and AI ventures.': 'Technical and creative work across XR, AI, interactive systems, visual communication, education and sound.',
+            '"@type": "Person",': '"@type": "Person",\n    "@id": "https://joe-nasr-signals.vercel.app/v2/#joe-nasr",',
+            '"url": "https://joenasriani.github.io/joenasr-portfolio/",': '"url": "https://joe-nasr-signals.vercel.app/v2/",',
+            '"https://joe-nasr-signals.vercel.app/",': '"https://joe-nasr-signals.vercel.app/v2/",',
+            '      "Creative Director",\n      "Composer",\n      "Creative Technologist",\n      "Corporate Trainer",\n      "AI Product Strategist"': '      "Creative Technologist",\n      "Creative Director",\n      "Educator",\n      "Composer"',
+            'Creative direction · sound · interaction · education · ventures': 'XR · AI · interactive systems · research · visual communication'
+          }
+          for old, new in replacements.items():
+              s = s.replace(old, new)
+          p.write_text(s)
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name "Joe Nasr Reputation Maintenance"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Align portfolio with Creative Technologist identity"
+          git push
