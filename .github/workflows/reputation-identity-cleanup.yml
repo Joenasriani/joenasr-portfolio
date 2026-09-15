@@ -14,24 +14,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Align portfolio with canonical technical identity
+      - name: Complete canonical identity alignment
         run: |
           python - <<'PY'
           from pathlib import Path
-          p = Path('index.html')
-          s = p.read_text()
-          replacements = {
-            'Joe Ribal Nasr is a Dubai-based creative director, composer, educator, AI product strategist and interactive media creator working across brands, sound, XR, games and robotics ventures.': 'Joe Ribal Nasr is a Dubai-based creative technologist working across XR, AI and interactive systems, with professional experience in creative direction, visual communication, education, music and interactive media.',
-            'Joe Nasr — Creative Director, Composer & Creative Technologist': 'Joe Nasr — Creative Technologist | XR, AI & Interactive Systems',
-            'Five connected practices: creative direction, interactive production, music, education and AI ventures.': 'Technical and creative work across XR, AI, interactive systems, visual communication, education and sound.',
-            '"@type": "Person",': '"@type": "Person",\n    "@id": "https://joe-nasr-signals.vercel.app/v2/#joe-nasr",',
-            '"url": "https://joenasriani.github.io/joenasr-portfolio/",': '"url": "https://joe-nasr-signals.vercel.app/v2/",',
-            '"https://joe-nasr-signals.vercel.app/",': '"https://joe-nasr-signals.vercel.app/v2/",',
-            '      "Creative Director",\n      "Composer",\n      "Creative Technologist",\n      "Corporate Trainer",\n      "AI Product Strategist"': '      "Creative Technologist",\n      "Creative Director",\n      "Educator",\n      "Composer"',
-            'Creative direction · sound · interaction · education · ventures': 'XR · AI · interactive systems · research · visual communication'
-          }
-          for old, new in replacements.items():
-              s = s.replace(old, new)
+          p=Path('index.html')
+          s=p.read_text()
+          s=s.replace('"alternateName": ["Joe Nasr", "Joseph Nasr"]','"alternateName": ["Joe Nasr", "Joe Ribal Nasr", "Joseph Ribal Nasr"]')
+          s=s.replace('      "https://robomarket.ae/"\n','')
+          s=s.replace('      "https://robomarket.ae/",\n','')
+          s=s.replace('https://joe-nasr-signals.vercel.app/','https://joe-nasr-signals.vercel.app/v2/')
+          # Preserve the portfolio canonical itself after the broad identity-link update.
+          s=s.replace('<link rel="canonical" href="https://joe-nasr-signals.vercel.app/v2/joenasr-portfolio/">','<link rel="canonical" href="https://joenasriani.github.io/joenasr-portfolio/">')
+          s=s.replace('<meta property="og:url" content="https://joe-nasr-signals.vercel.app/v2/joenasr-portfolio/">','<meta property="og:url" content="https://joenasriani.github.io/joenasr-portfolio/">')
+          s=s.replace('Dubai-based multidisciplinary creative working across the GCC.','Dubai-based creative technologist working across the GCC.')
           p.write_text(s)
           PY
       - name: Commit changes
@@ -39,5 +35,5 @@ jobs:
           git config user.name "Joe Nasr Reputation Maintenance"
           git config user.email "actions@users.noreply.github.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "Align portfolio with Creative Technologist identity"
+          git diff --cached --quiet || git commit -m "Complete portfolio canonical identity cleanup"
           git push
