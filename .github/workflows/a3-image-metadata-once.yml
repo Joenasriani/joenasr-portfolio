@@ -1,0 +1,57 @@
+name: A3 canonical image metadata
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/a3-image-metadata-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Align portfolio image metadata with canonical identity
+        shell: python
+        run: |
+          from pathlib import Path
+
+          p = Path("index.html")
+          s = p.read_text()
+          image = "https://avatars.githubusercontent.com/u/3828735?v=4"
+
+          og_anchor = '  <meta property="og:url" content="https://joenasriani.github.io/joenasr-portfolio/">\n'
+          og_block = og_anchor + f'  <meta property="og:image" content="{image}">\n  <meta property="og:image:alt" content="Joe Nasr">\n'
+          if 'property="og:image"' not in s:
+              if og_anchor not in s:
+                  raise SystemExit("Portfolio og:url anchor not found")
+              s = s.replace(og_anchor, og_block, 1)
+
+          tw_anchor = '  <meta name="twitter:card" content="summary_large_image">\n'
+          tw_block = tw_anchor + f'  <meta name="twitter:image" content="{image}">\n  <meta name="twitter:image:alt" content="Joe Nasr">\n'
+          if 'name="twitter:image"' not in s:
+              if tw_anchor not in s:
+                  raise SystemExit("Portfolio twitter card anchor not found")
+              s = s.replace(tw_anchor, tw_block, 1)
+
+          person_anchor = '    "url": "https://joe-nasr-signals.vercel.app/v2/",\n'
+          person_block = person_anchor + f'    "image": "{image}",\n'
+          if '"image": "https://avatars.githubusercontent.com/u/3828735?v=4"' not in s:
+              if person_anchor not in s:
+                  raise SystemExit("Portfolio Person url anchor not found")
+              s = s.replace(person_anchor, person_block, 1)
+
+          p.write_text(s)
+
+      - name: Remove one-time workflow
+        run: rm .github/workflows/a3-image-metadata-once.yml
+      - name: Commit canonical image metadata
+        run: |
+          git config user.name "Joe Nasr repository maintenance"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html .github/workflows/a3-image-metadata-once.yml
+          git commit -m "Align portfolio image metadata with canonical identity"
+          git push
